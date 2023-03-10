@@ -1,5 +1,5 @@
-pydantic==1.8.2
-uvicorn==0.15.0
+pydantic
+uvicorn
 fastapi
 python-multipart
 openai-whisper
