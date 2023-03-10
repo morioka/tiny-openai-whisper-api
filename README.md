@@ -10,7 +10,7 @@ $ export PYTHONPATH=.
 $ uvicorn main:app --host 0.0.0.0
 ```
 
-## clint
+## client
 ```bash
 $ curl http://127.0.0.1:8000/v1/audio/transcriptions  -H "Content-Type: multipart/form-data"  -F model="whisper-1" -F file="@sample.mp4"
 $ # set the output format as text
