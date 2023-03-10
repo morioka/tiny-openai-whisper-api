@@ -1,0 +1,6 @@
+fastapi
+python-multipart
+openai-whisper
+ffmpeg-python
+# not ffpmeg
+# not python-ffmpeg
