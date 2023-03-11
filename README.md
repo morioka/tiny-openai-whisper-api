@@ -8,7 +8,7 @@ This API will be compatible with [OpenAI Whisper (speech to text) API](https://o
 Some of code has been copied from [whisper-ui](https://github.com/hayabhay/whisper-ui)
 
 ## Setup
-This was built & tested on Python 3.10.8, Ubutu22.04/WSL2 but should also work on Python 3.9+.
+This was built & tested on Python 3.10.8, Ubutu20.04/WSL2 but should also work on Python 3.9+.
 
 ```bash
 sudo apt install ffmpeg
