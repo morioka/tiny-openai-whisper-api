@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  whisper-api:
+    image: morioka/tiny-openai-whisper-api
+    build: .
+    container_name: whisper-api
+    restart: unless-stopped
+    init: true
+    ports:
+      - 8000:8000
