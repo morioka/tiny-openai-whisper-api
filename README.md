@@ -16,12 +16,24 @@ pip install fastapi python-multipart pydantic uvicorn ffmpeg-python openai-whisp
 # or pip install -r requirements.txt
 ```
 
+or 
+
+```bash
+docker compose build
+```
+
 ## Usage
 
 ### server
 ```bash
 export PYTHONPATH=.
 uvicorn main:app --host 0.0.0.0
+```
+
+or 
+
+```bash
+docker compose up
 ```
 
 ### client
