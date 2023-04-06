@@ -2,8 +2,7 @@
 
 OpenAI Whisper API-style local server, runnig on FastAPI. This is for companies behind proxies or security firewalls.
 
-This API will be compatible with [OpenAI Whisper (speech to text) API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis).
-
+This API will be compatible with [OpenAI Whisper (speech to text) API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis). See also  [Create transcription - API Reference - OpenAI API](https://platform.openai.com/docs/api-reference/audio/create).
 
 Some of code has been copied from [whisper-ui](https://github.com/hayabhay/whisper-ui)
 
