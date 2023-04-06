@@ -7,15 +7,15 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy the current directory contents into the container at /app
-COPY main.py /app/main.py
-
 # Copy and install the requirements
 COPY ./requirements.txt /requirements.txt
 
 # Pip install the dependencies
 RUN pip install --upgrade pip 
 RUN pip install --no-cache-dir -r /requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY main.py /app/main.py
 
 # Set the working directory to /app
 WORKDIR /app
