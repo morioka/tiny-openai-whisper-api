@@ -68,6 +68,7 @@ WHISPER_DEFAULT_SETTINGS = {
     "compression_ratio_threshold": 2.4,
     "condition_on_previous_text": True,
     "verbose": False,
+#    "verbose": True,
     "task": "transcribe",
 #    "task": "translation",
 }
@@ -76,13 +77,36 @@ UPLOAD_DIR="/tmp"
 # -----
 
 @app.post('/v1/audio/transcriptions')
-async def transcriptions(model: str = Form(...), file: UploadFile = File(...), response_format: Optional[str] = Form(None)):
+async def transcriptions(model: str = Form(...),
+                         file: UploadFile = File(...),
+                         response_format: Optional[str] = Form(None),
+                         prompt: Optional[str] = Form(None),
+                         temperature: Optional[float] = Form(None),
+                         language: Optional[str] = Form(None)):
 
     assert model == "whisper-1"
     if file is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Bad Request"
+            detail=f"Bad Request, bad file"
+            )
+    if response_format is None:
+        response_format = 'json'
+    if response_format not in ['json',
+                           'text',
+                           'srt',
+                           'verbose_json',
+                           'vtt']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, bad response_format"
+            )
+    if temperature is None:
+        temperature = 0.0
+    if temperature < 0.0 or temperature > 1.0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, bad temperature"
             )
 
     filename = file.filename
@@ -94,9 +118,29 @@ async def transcriptions(model: str = Form(...), file: UploadFile = File(...), r
 
     transcript = transcribe(audio_path=upload_name, **WHISPER_DEFAULT_SETTINGS)
 
-    if response_format == 'text':
+
+    if response_format in ['text']:
         return transcript['text']
 
-    return {"text": transcript['text']}
-    return {transcript}
+    if response_format in ['srt']:
+        ret = ""
+        for seg in transcript['segments']:
+            ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], seg["start"], seg["end"], seg["text"])
+        ret += '\n'
+        return ret
+
+    if response_format in ['vtt']:
+        ret = "WEBVTT\n\n"
+        for seg in transcript['segments']:
+            ret += "{} --> {}\n{}\n\n".format(seg["start"], seg["end"], seg["text"])
+        return eval(ret)
+
+    if response_format in ['verbose_json']:
+        transcript.setdefault('task', WHISPER_DEFAULT_SETTINGS['task'])
+        transcript.setdefault('duration', transcript['segments'][-1]['end'])
+        if transcript['language'] == 'ja':
+            transcript['language'] = 'japanese'
+        return transcript
+
+    return {'text': transcript['text']}
 
