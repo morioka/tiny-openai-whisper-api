@@ -7,6 +7,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, List, Union, Optional
 
+from datetime import timedelta
+
 import numpy as np
 import whisper
 
@@ -125,15 +127,28 @@ async def transcriptions(model: str = Form(...),
     if response_format in ['srt']:
         ret = ""
         for seg in transcript['segments']:
-            ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], seg["start"], seg["end"], seg["text"])
+            
+            td_s = timedelta(milliseconds=seg["start"]*1000)
+            td_e = timedelta(milliseconds=seg["end"]*1000)
+
+            t_s = f'{td_s.seconds//3600:02}:{(td_s.seconds//60)%60:02}:{td_s.seconds%60:02}.{td_s.microseconds//1000:03}'
+            t_e = f'{td_e.seconds//3600:02}:{(td_e.seconds//60)%60:02}:{td_e.seconds%60:02}.{td_e.microseconds//1000:03}'
+
+            ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], t_s, t_e, seg["text"])
         ret += '\n'
         return ret
 
     if response_format in ['vtt']:
         ret = "WEBVTT\n\n"
         for seg in transcript['segments']:
-            ret += "{} --> {}\n{}\n\n".format(seg["start"], seg["end"], seg["text"])
-        return eval(ret)
+            td_s = timedelta(milliseconds=seg["start"]*1000)
+            td_e = timedelta(milliseconds=seg["end"]*1000)
+
+            t_s = f'{td_s.seconds//3600:02}:{(td_s.seconds//60)%60:02}:{td_s.seconds%60:02}.{td_s.microseconds//1000:03}'
+            t_e = f'{td_e.seconds//3600:02}:{(td_e.seconds//60)%60:02}:{td_e.seconds%60:02}.{td_e.microseconds//1000:03}'
+
+            ret += "{} --> {}\n{}\n\n".format(t_s, t_e, seg["text"])
+        return ret
 
     if response_format in ['verbose_json']:
         transcript.setdefault('task', WHISPER_DEFAULT_SETTINGS['task'])
