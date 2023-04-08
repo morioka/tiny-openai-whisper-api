@@ -61,8 +61,8 @@ def transcribe(audio_path: str, whisper_model: str, **whisper_args):
 
 
 WHISPER_DEFAULT_SETTINGS = {
-    "whisper_model": "base",
-#    "whisper_model": "large-v2",
+#    "whisper_model": "base",
+    "whisper_model": "large-v2",
     "temperature": 0.0,
     "temperature_increment_on_fallback": 0.2,
     "no_speech_threshold": 0.6,
