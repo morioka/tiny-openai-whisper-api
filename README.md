@@ -61,5 +61,4 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
 
 ## License
 
-Whisper is licensed under MIT.  whipser-ui excluding Whisper and Streamlit is licensed under MIT.
-Everything else by [morioka](https://github.com/morioka) is licensed under MIT.
+Whisper is licensed under MIT. Everything else by [morioka](https://github.com/morioka) is licensed under MIT.
