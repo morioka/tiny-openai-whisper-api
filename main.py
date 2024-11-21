@@ -81,6 +81,7 @@ UPLOAD_DIR="/tmp"
 @app.post('/v1/audio/transcriptions')
 async def transcriptions(model: str = Form(...),
                          file: UploadFile = File(...),
+                         language: Optional[str] = Form(None),
                          response_format: Optional[str] = Form(None),
                          prompt: Optional[str] = Form(None),
                          temperature: Optional[float] = Form(None),
@@ -118,7 +119,13 @@ async def transcriptions(model: str = Form(...),
     shutil.copyfileobj(fileobj, upload_file)
     upload_file.close()
 
-    transcript = transcribe(audio_path=upload_name, **WHISPER_DEFAULT_SETTINGS)
+    settigns = WHISPER_DEFAULT_SETTINGS.copy()
+    settings['temperature'] = temperature
+    if language is not None:
+        # TODO: check  ISO-639-1  format
+        settings['language'] = language
+
+    transcript = transcribe(audio_path=upload_name, **settings)
 
 
     if response_format in ['text']:
