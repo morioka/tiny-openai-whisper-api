@@ -6,8 +6,20 @@ This API will be compatible with [OpenAI Whisper (speech to text) API](https://o
 
 Some of code has been copied from [whisper-ui](https://github.com/hayabhay/whisper-ui)
 
+
+Now, this server emulates the following OpenAI APIs. 
+
+- (whisper) [Speech to text - OpenAI API](https://platform.openai.com/docs/guides/speech-to-text)
+- (chat) [Audio generation - OpenAI API](https://platform.openai.com/docs/guides/audio?audio-generation-quickstart-example=audio-in)
+
+## Running Environment
+
+This was built & tested on Python 3.10.9, Ubutu20.04/WSL2 but should also work on Python 3.9+.
+
+- openai=1.55.0
+- openai-whisper=20240930
+
 ## Setup
-This was built & tested on Python 3.10.8, Ubutu20.04/WSL2 but should also work on Python 3.9+.
 
 ```bash
 sudo apt install ffmpeg
@@ -58,7 +70,79 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
   -F file="@/path/to/file/openai.mp3" \
   -F response_format=text
 ```
+## experimental: gpt-4o-audio-preview, chat-completions
 
+currenly "output text only" mode is supported. 
+If "output text and audio" is specified, the system makes "output text only" response.
+
+- output text and audio
+  - modalities=["text", "audio"], audio={"voice": "alloy", "format": "wav"}
+
+```
+completion = client.chat.completions.create(
+    model="gpt-4o-audio-preview-2024-10-01",
+    modalities=["text", "audio"],
+    audio={"voice": "alloy", "format": "wav"},
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                { 
+                    "type": "text",
+                    "text": "What is in this recording?"
+                },
+                {
+                    "type": "input_audio",
+                    "input_audio": {
+                        "data": encoded_string,
+                        "format": "wav"
+                    }
+                }
+            ]
+        },
+    ]
+)
+
+print(completion.choices[0].message.audio.transcript)
+```
+
+```python
+ChatCompletion(id='chatcmpl-AXQt8BTMW4Gh1OcJ5qStVDNZGdzSq', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content=None, refusal=None, role='assistant', audio=ChatCompletionAudio(id='audio_6744555cc6d48190b67e70798ab606c3', data='{{base64-wav}}', expires_at=1732535148, transcript='The recording contains a voice stating that the sun rises in the east and sets in the west, a fact that has been observed by humans for thousands of years.'), function_call=None, tool_calls=None))], created=1732531546, model='gpt-4o-audio-preview-2024-10-01', object='chat.completion', service_tier=None, system_fingerprint='fp_130ac2f073', usage=CompletionUsage(completion_tokens=236, prompt_tokens=86, total_tokens=322, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=188, reasoning_tokens=0, rejected_prediction_tokens=0, text_tokens=48), prompt_tokens_details=PromptTokensDetails(audio_tokens=69, cached_tokens=0, text_tokens=17, image_tokens=0)))
+```
+
+- output text only
+  - modalities=["text"]
+
+```python
+completion = client.chat.completions.create(
+    model="gpt-4o-audio-preview-2024-10-01",
+    modalities=["text"],
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                { 
+                    "type": "text",
+                    "text": "What is in this recording?"
+                },
+                {
+                    "type": "input_audio",
+                    "input_audio": {
+                        "data": encoded_string,
+                        "format": "wav"
+                    }
+                }
+            ]
+        },
+    ]
+)
+
+print(completion.choices[0].message.content)
+```
+
+```python
+ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content="The recording contains a statement about the sun's movement, stating that the sun rises in the east and sets in the west, a fact that has been observed by humans for thousands of years.", refusal=None, role='assistant', audio=None, function_call=None, tool_calls=None))], created=1732540389, model='gpt-4o-audio-preview-2024-10-01', object='chat.completion', service_tier=None, system_fingerprint='fp_130ac2f073', usage=CompletionUsage(completion_tokens=38, prompt_tokens=86, total_tokens=124, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0, text_tokens=38), prompt_tokens_details=PromptTokensDetails(audio_tokens=69, cached_tokens=0, text_tokens=17, image_tokens=0)))
+```
 ## License
 
 Whisper is licensed under MIT. Everything else by [morioka](https://github.com/morioka) is licensed under MIT.

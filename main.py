@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Form, UploadFile, File
+from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 
 import os
 import shutil
@@ -11,6 +12,13 @@ from datetime import timedelta
 
 import numpy as np
 import whisper
+
+import httpx
+import urllib
+import uvicorn
+import json
+import base64
+import tempfile
 
 app = FastAPI()
 
@@ -78,14 +86,285 @@ WHISPER_DEFAULT_SETTINGS = {
 UPLOAD_DIR="/tmp"
 # -----
 
+@app.get('/v1/models')
+async def v1_models(request: Request):
+    content = {
+        "object": "list",
+        "data": [
+            {
+                "id": "whisper-1",
+                "object": "model",
+                "created": 17078881749,
+                "owned_by": "tiny-whisper-api"
+            }
+        ]
+    }
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response_status_code = 200
+
+    resp = JSONResponse(
+        content = content,
+        headers = headers,
+        status_code = response_status_code
+    )
+
+    return resp
+
+# gpt-4o-audio-preview：OpenAI の Chat Completions API でオーディオを扱う新機能を軽く見てみる【2024/10/17リリース】 #ChatGPT - Qiita
+# https://qiita.com/youtoy/items/5a87fd22cc88d8c34d6d
+
+# https://platform.openai.com/docs/api-reference/chat/create
+'''
+curl "https://api.openai.com/v1/chat/completions" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -d '{
+      "model": "gpt-4o-audio-preview",
+      "modalities": ["text", "audio"],
+      "audio": { "voice": "alloy", "format": "wav" },
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            { "type": "text", "text": "What is in this recording?" },
+            {
+              "type": "input_audio",
+              "input_audio": {
+                "data": "<base64 bytes here>",
+                "format": "wav"
+              }
+            }
+          ]
+        }
+      ]
+    }'
+'''
+
+# modalities = ["text"]
+CHAT_COMPLETIONS_RESPONSE_TEMPLATE='''
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-4o-audio-preview-2024-10-01",
+  "system_fingerprint": "fp_44709d6fcb",
+  "service_tier": null,
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Hello there, how may I assist you today?",
+      "refusal": null
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 86,
+    "prompt_tokens_details": {
+      "audio_tokens": 69,
+      "cached_tokens": 0,
+      "text_tokens": 17,
+      "image_tokens": 0
+    },
+    "completion_tokens": 36,
+    "total_tokens": 122,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "text_toekns": 17
+    }
+  }
+}
+'''
+
+# modalities = ["text", "audio"]
+CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE='''
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-4o-audio-preview-2024-10-01",
+  "system_fingerprint": "fp_44709d6fcb",
+  "service_tier": null,
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": null",
+      "refusal": null,
+      "audio": {
+        "data": "response_audio_data_base64",
+        "transcript": "response_transcript"
+      }
+    },
+    "logprobs": null,
+    "finish_reason": "stop",
+    "function_call": null,
+    "tool_calls": null
+  }],
+  "usage": {
+    "prompt_tokens": 86,
+    "prompt_tokens_details": {
+      "audio_tokens": 69,
+      "cached_tokens": 0,
+      "text_tokens": 17,
+      "image_tokens": 0
+    },
+    "completion_tokens": 236,
+    "total_tokens": 322,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 188,
+      "reasoning_tokens": 0,
+      "text_tokens": 48
+    }
+  }
+}
+'''
+
+def is_base64_encoded(s: str) -> bool:
+    try:
+        # パディングの調整（4の倍数に）
+        if len(s) % 4 != 0:
+            return False
+
+        # デコードしてみる
+        base64.b64decode(s, validate=True)
+        return True
+    except Exception:
+        return False
+
+def save_base64_to_temp_file(base64_string: str) -> str:
+    try:
+        # BASE64文字列をデコード
+        binary_data = base64.b64decode(base64_string)
+
+        # 一時ファイルを作成
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as temp_file:
+            temp_file.write(binary_data)
+            temp_file_path = temp_file.name  # 一時ファイルのパスを取得
+        
+        return temp_file_path
+
+    except Exception as e:
+        return None
+    
+@app.post('/v1/chat/completions')
+async def v1_chat_completions(request: Request):
+
+    req_body = await request.json()
+    model = req_body['model']
+    modalities = req_body['modalities']
+    audio = req_body['audio']
+
+    if model not in ['gpt-4o-audio-preview']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, not supported model"
+            )
+
+    if 'text' not in modalities:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, 'text' is not in modalitiees"
+            )
+    if 'audio' not in modalities:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, 'audio' is not in modalitiees"
+            )
+
+    if audio['voice'] not in ['ash', 'ballad', 'coral', 'sage', 'verse', 'alloy', 'echo', 'shmmer']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, not supported voice"
+            )
+    if audio['format'] not in ['wav', 'mp3', 'flac', 'opus', 'pcm16']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, not supported format"
+            )
+
+    messages = req_body['messages']
+    content = None
+    for m in messages:
+        for c in m['content']:
+            if 'input_audio' in c:
+                assert 'data' in c['input_audio']
+                assert 'format' in c['input_audio']
+                content = c
+                break
+
+    if content is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, missing content"
+            )
+
+    # content data is base64-encoded?
+    data = content['input_audio']['data']
+    if not is_base64_encoded(data):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, content is not base64-encoded."
+            )
+
+    # TODO: transcribe audio to text
+    settings = WHISPER_DEFAULT_SETTINGS.copy()
+    #settings['temperature'] = temperature
+    #if language is not None:
+    #    # TODO: check  ISO-639-1  format
+    #    settings['language'] = language
+
+    temp_content_path = save_base64_to_temp_file(data)
+    if temp_content_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bad Request, transcription failed."
+            )
+
+    transcript = transcribe(audio_path=temp_content_path, **settings)
+    text = transcript['text']
+
+    if temp_content_path:
+        # TODO: 非同期で削除したい
+        os.remove(temp_content_path)
+
+    print(transcript)
+    print(text)
+    resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_TEMPLATE)
+    resp_body['model'] = model
+#    resp_body['choices'][0]['messages']['content'] = text
+    resp_body['choices'][0]['message']['content'] = text
+
+    resp = JSONResponse(
+        content = resp_body,
+        headers = {
+            'Content-Type': 'application/json'
+        },
+        status_code = 200
+    )
+    
+    return resp
+
+
 @app.post('/v1/audio/transcriptions')
 async def transcriptions(model: str = Form(...),
                          file: UploadFile = File(...),
-                         language: Optional[str] = Form(None),
                          response_format: Optional[str] = Form(None),
+                         language: Optional[str] = Form(None),
                          prompt: Optional[str] = Form(None),
-                         temperature: Optional[float] = Form(None),
-                         language: Optional[str] = Form(None)):
+                         temperature: Optional[float] = Form(None)):
 
     assert model == "whisper-1"
     if file is None:
@@ -119,7 +398,7 @@ async def transcriptions(model: str = Form(...),
     shutil.copyfileobj(fileobj, upload_file)
     upload_file.close()
 
-    settigns = WHISPER_DEFAULT_SETTINGS.copy()
+    settings = WHISPER_DEFAULT_SETTINGS.copy()
     settings['temperature'] = temperature
     if language is not None:
         # TODO: check  ISO-639-1  format
@@ -165,4 +444,12 @@ async def transcriptions(model: str = Form(...),
         return transcript
 
     return {'text': transcript['text']}
+
+def main():
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level ="info")
+
+if __name__ == "__main__":
+#    main()
+    pass
+
 
