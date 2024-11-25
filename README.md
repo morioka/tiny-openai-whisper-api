@@ -72,6 +72,8 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
 ```
 ## experimental: gpt-4o-audio-preview, chat-completions
 
+(not comfirmed yet) Can we use this feature to transcribe an uploaded audio file, on Dify platform?
+
 currenly "output text only" mode is supported. 
 If "output text and audio" is specified, the system makes "output text only" response.
 
