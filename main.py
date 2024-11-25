@@ -144,31 +144,89 @@ curl "https://api.openai.com/v1/chat/completions" \
     }'
 '''
 
+# modalities = ["text"]
 CHAT_COMPLETIONS_RESPONSE_TEMPLATE='''
 {
   "id": "chatcmpl-123",
   "object": "chat.completion",
   "created": 1677652288,
-  "model": "gpt-4o-mini",
+  "model": "gpt-4o-audio-preview-2024-10-01",
   "system_fingerprint": "fp_44709d6fcb",
+  "service_tier": null,
   "choices": [{
     "index": 0,
     "message": {
       "role": "assistant",
       "content": "Hello there, how may I assist you today?",
-      "refusal": null,
+      "refusal": null
     },
     "logprobs": null,
     "finish_reason": "stop"
   }],
   "usage": {
-    "prompt_tokens": 9,
-    "completion_tokens": 12,
-    "total_tokens": 21,
+    "prompt_tokens": 86,
+    "prompt_tokens_details": {
+      "audio_tokens": 69,
+      "cached_tokens": 0,
+      "text_tokens": 17,
+      "image_tokens": 0
+    },
+    "completion_tokens": 36,
+    "total_tokens": 122,
     "completion_tokens_details": {
       "reasoning_tokens": 0,
       "accepted_prediction_tokens": 0,
-      "rejected_prediction_tokens": 0
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "text_toekns": 17
+    }
+  }
+}
+'''
+
+# modalities = ["text", "audio"]
+CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE='''
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-4o-audio-preview-2024-10-01",
+  "system_fingerprint": "fp_44709d6fcb",
+  "service_tier": null,
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": null",
+      "refusal": null,
+      "audio": {
+        "data": "response_audio_data_base64",
+        "transcript": "response_transcript"
+      }
+    },
+    "logprobs": null,
+    "finish_reason": "stop",
+    "function_call": null,
+    "tool_calls": null
+  }],
+  "usage": {
+    "prompt_tokens": 86,
+    "prompt_tokens_details": {
+      "audio_tokens": 69,
+      "cached_tokens": 0,
+      "text_tokens": 17,
+      "image_tokens": 0
+    },
+    "completion_tokens": 236,
+    "total_tokens": 322,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 188,
+      "reasoning_tokens": 0,
+      "text_tokens": 48
     }
   }
 }

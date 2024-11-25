@@ -13,9 +13,9 @@ encoded_string = base64.b64encode(wav_data).decode('utf-8')
 
 completion = client.chat.completions.create(
     model="gpt-4o-audio-preview-2024-10-01",
-    modalities=["text", "audio"],
-    audio={"voice": "alloy", "format": "wav"},
-#    modalities=["text"],
+#    modalities=["text", "audio"],
+#    audio={"voice": "alloy", "format": "wav"},
+    modalities=["text"],
     messages=[
         {
             "role": "user",
