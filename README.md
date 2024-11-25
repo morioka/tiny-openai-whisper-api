@@ -23,7 +23,7 @@ This was built & tested on Python 3.10.9, Ubutu20.04/WSL2 but should also work o
 
 ```bash
 sudo apt install ffmpeg
-pip install fastapi python-multipart pydantic uvicorn ffmpeg-python openai-whisper
+pip install fastapi python-multipart pydantic uvicorn openai-whisper
 # or pip install -r requirements.txt
 ```
 
