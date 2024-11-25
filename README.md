@@ -143,6 +143,12 @@ print(completion.choices[0].message.content)
 ```python
 ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content="The recording contains a statement about the sun's movement, stating that the sun rises in the east and sets in the west, a fact that has been observed by humans for thousands of years.", refusal=None, role='assistant', audio=None, function_call=None, tool_calls=None))], created=1732540389, model='gpt-4o-audio-preview-2024-10-01', object='chat.completion', service_tier=None, system_fingerprint='fp_130ac2f073', usage=CompletionUsage(completion_tokens=38, prompt_tokens=86, total_tokens=124, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0, text_tokens=38), prompt_tokens_details=PromptTokensDetails(audio_tokens=69, cached_tokens=0, text_tokens=17, image_tokens=0)))
 ```
+
+## TODO
+
+- more inference parameters should be supported. only `temperature` is supported.
+- text prompt (to whisper module) should be supported. currently text prompt is ignored.
+
 ## License
 
 Whisper is licensed under MIT. Everything else by [morioka](https://github.com/morioka) is licensed under MIT.
