@@ -37,6 +37,7 @@ docker compose build
 
 ### server
 ```bash
+export WHISPER_MODEL=turbo  # 'turbo' if not supecified
 export PYTHONPATH=.
 uvicorn main:app --host 0.0.0.0
 ```
@@ -72,7 +73,7 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
 ```
 ## experimental: gpt-4o-audio-preview, chat-completions
 
-(not comfirmed yet) Can we use this feature to transcribe an uploaded audio file, on Dify platform?
+(not comfirmed yet) Can we use this feature to transcribe an uploaded audio file, on Dify platform? --> streaming input handling should be supported on dify? mmm..
 
 currenly "output text only" mode is supported. 
 If "output text and audio" is specified, the system makes "output text only" response.
@@ -150,6 +151,7 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 
 - more inference parameters should be supported. only `temperature` is supported.
 - text prompt (to whisper module) should be supported. currently text prompt is ignored.
+- some of reponse property values are dummy (static).
 
 ## License
 
