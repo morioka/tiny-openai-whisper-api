@@ -320,8 +320,6 @@ async def v1_chat_completions(request: Request):
 
     req_body = await request.json()
 
-    print(req_body)
-
     model = req_body['model']
     try:
         modalities = req_body['modalities']
@@ -423,8 +421,8 @@ async def v1_chat_completions(request: Request):
         # TODO: 非同期で削除したい
         os.remove(temp_content_path)
 
-    print(transcript)
-    print(text)
+    #print(transcript)
+    #print(text)
 
     if audio is not None:
         resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE)
