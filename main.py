@@ -32,6 +32,8 @@ app = FastAPI()
 #  "text": "Imagine the wildest idea that you've ever had, and you're curious about how it might scale to something that's a 100, a 1,000 times bigger..."
 #}
 
+
+WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'turbo')
 # -----
 # copied from https://github.com/hayabhay/whisper-ui
 
@@ -93,6 +95,18 @@ async def v1_models(request: Request):
         "data": [
             {
                 "id": "whisper-1",
+                "object": "model",
+                "created": 17078881749,
+                "owned_by": "tiny-whisper-api"
+            },
+            {
+                "id": "gpt-4o-audio-preview",
+                "object": "model",
+                "created": 17078881749,
+                "owned_by": "tiny-whisper-api"
+            },
+            {
+                "id": "gpt-4o-audio-preview-2024-10-01",
                 "object": "model",
                 "created": 17078881749,
                 "owned_by": "tiny-whisper-api"
@@ -267,7 +281,7 @@ async def v1_chat_completions(request: Request):
     modalities = req_body['modalities']
     audio = req_body['audio']
 
-    if model not in ['gpt-4o-audio-preview']:
+    if model not in ['gpt-4o-audio-preview', 'gpt-4o-audio-preview-2024-10-01']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Bad Request, not supported model"
@@ -321,6 +335,7 @@ async def v1_chat_completions(request: Request):
 
     # TODO: transcribe audio to text
     settings = WHISPER_DEFAULT_SETTINGS.copy()
+    settings['whisper_model'] = WHISPER_MODEL
     #settings['temperature'] = temperature
     #if language is not None:
     #    # TODO: check  ISO-639-1  format
