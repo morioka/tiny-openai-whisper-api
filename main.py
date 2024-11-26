@@ -248,6 +248,46 @@ CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE='''
 }
 '''
 
+CHAT_COMPLETIONS_RESPONSE_DIFY_PING_TEMPLATE='''
+{
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-4o-audio-preview-2024-10-01",
+  "system_fingerprint": "fp_44709d6fcb",
+  "service_tier": null,
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Pong",
+      "refusal": null
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 5,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0,
+      "text_tokens": 5,
+      "image_tokens": 0
+    },
+    "completion_tokens": 5,
+    "total_tokens": 10,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "text_toekns": 5
+    }
+  }
+}
+'''
+
 def is_base64_encoded(s: str) -> bool:
     try:
         # パディングの調整（4の倍数に）
@@ -279,8 +319,14 @@ def save_base64_to_temp_file(base64_string: str) -> str:
 async def v1_chat_completions(request: Request):
 
     req_body = await request.json()
+
+    print(req_body)
+
     model = req_body['model']
-    modalities = req_body['modalities']
+    try:
+        modalities = req_body['modalities']
+    except KeyError:
+        modalities = ['text']
     try:
         audio = req_body['audio']
     except KeyError:
@@ -327,6 +373,21 @@ async def v1_chat_completions(request: Request):
                 break
 
     if content is None:
+        # dify ping
+        for m in messages:
+            if m['content'] in ['ping', 'transcribe']:
+                resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_DIFY_PING_TEMPLATE)
+                resp_body['model'] = model
+                resp = JSONResponse(
+                    content = resp_body,
+                    headers = {
+                        'Content-Type': 'application/json'
+                    },
+                    status_code = 200
+                )
+                
+                return resp
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Bad Request, missing content"
