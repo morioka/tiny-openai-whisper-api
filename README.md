@@ -152,6 +152,7 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 - more inference parameters should be supported. only `temperature` is supported.
 - text prompt (to whisper module) should be supported. currently text prompt is ignored.
 - some of reponse property values are dummy (static).
+- 'speech-to-text' chat completion available on dify
 
 ## License
 
