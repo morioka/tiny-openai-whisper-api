@@ -3,6 +3,7 @@ import requests
 from openai import OpenAI
 
 client = OpenAI()
+client = OpenAI(base_url='http://localhost:8000/v1')
 
 # Fetch the audio file and convert it to a base64 encoded string
 url = "https://openaiassets.blob.core.windows.net/$web/API/docs/audio/alloy.wav"
