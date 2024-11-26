@@ -217,6 +217,7 @@ CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE='''
       "audio": {
         "id": "audio_6744555cc6d48190b67e70798ab606c3",
         "data": "response_audio_data_base64",
+        "expires_at": 1732535148,
         "transcript": "response_transcript"
       }
     },
