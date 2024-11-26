@@ -279,7 +279,10 @@ async def v1_chat_completions(request: Request):
     req_body = await request.json()
     model = req_body['model']
     modalities = req_body['modalities']
-    audio = req_body['audio']
+    try:
+        audio = req_body['audio']
+    except KeyError:
+        audio = None
 
     if model not in ['gpt-4o-audio-preview', 'gpt-4o-audio-preview-2024-10-01']:
         raise HTTPException(
@@ -292,22 +295,24 @@ async def v1_chat_completions(request: Request):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Bad Request, 'text' is not in modalitiees"
             )
-    if 'audio' not in modalities:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Bad Request, 'audio' is not in modalitiees"
-            )
+    
+    if 'audio' in modalities:
+        if audio is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Bad Request, 'audio' is in modalitiees, but attiributes are not specified."
+                )
 
-    if audio['voice'] not in ['ash', 'ballad', 'coral', 'sage', 'verse', 'alloy', 'echo', 'shmmer']:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Bad Request, not supported voice"
-            )
-    if audio['format'] not in ['wav', 'mp3', 'flac', 'opus', 'pcm16']:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Bad Request, not supported format"
-            )
+        if audio['voice'] not in ['ash', 'ballad', 'coral', 'sage', 'verse', 'alloy', 'echo', 'shmmer']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Bad Request, not supported voice"
+                )
+        if audio['format'] not in ['wav', 'mp3', 'flac', 'opus', 'pcm16']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Bad Request, not supported format"
+                )
 
     messages = req_body['messages']
     content = None
