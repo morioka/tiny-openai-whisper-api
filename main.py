@@ -212,9 +212,10 @@ CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE='''
     "index": 0,
     "message": {
       "role": "assistant",
-      "content": null",
+      "content": null,
       "refusal": null,
       "audio": {
+        "id": "audio_6744555cc6d48190b67e70798ab606c3",
         "data": "response_audio_data_base64",
         "transcript": "response_transcript"
       }
@@ -362,10 +363,15 @@ async def v1_chat_completions(request: Request):
 
     print(transcript)
     print(text)
-    resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_TEMPLATE)
+
+    if audio is not None:
+        resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_AUDIO_OUTPUT_TEMPLATE)
+        resp_body['choices'][0]['message']['audio']['transcript'] = text
+    else:
+        resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_TEMPLATE)
+        resp_body['choices'][0]['message']['content'] = text
+
     resp_body['model'] = model
-#    resp_body['choices'][0]['messages']['content'] = text
-    resp_body['choices'][0]['message']['content'] = text
 
     resp = JSONResponse(
         content = resp_body,
