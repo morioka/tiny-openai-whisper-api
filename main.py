@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import numpy as np
 import whisper
+import torch
 
 import httpx
 import urllib
@@ -42,7 +43,8 @@ WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'turbo')
 @lru_cache(maxsize=1)
 def get_whisper_model(whisper_model: str):
     """Get a whisper model from the cache or download it if it doesn't exist"""
-    model = whisper.load_model(whisper_model)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = whisper.load_model(whisper_model, device=device, in_memory=True)
     return model
 
 def transcribe(audio_path: str, whisper_model: str, **whisper_args):
