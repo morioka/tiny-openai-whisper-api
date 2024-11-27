@@ -73,8 +73,6 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
 ```
 ## experimental: gpt-4o-audio-preview, chat-completions
 
-(not comfirmed yet) Can we use this feature to transcribe an uploaded audio file, on Dify platform? --> streaming input handling should be supported on dify? mmm..
-
 currenly "output text only" mode is supported. 
 If "output text and audio" is specified, the system makes "output text only" response.
 
@@ -146,6 +144,13 @@ print(completion.choices[0].message.content)
 ```python
 ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content="The recording contains a statement about the sun's movement, stating that the sun rises in the east and sets in the west, a fact that has been observed by humans for thousands of years.", refusal=None, role='assistant', audio=None, function_call=None, tool_calls=None))], created=1732540389, model='gpt-4o-audio-preview-2024-10-01', object='chat.completion', service_tier=None, system_fingerprint='fp_130ac2f073', usage=CompletionUsage(completion_tokens=38, prompt_tokens=86, total_tokens=124, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0, text_tokens=38), prompt_tokens_details=PromptTokensDetails(audio_tokens=69, cached_tokens=0, text_tokens=17, image_tokens=0)))
 ```
+
+### experimental: Dify integration
+
+- LLM registration ... OK
+- audio file transcription ... NG
+  - only open:gpt-4o-audio-preview is supported for file transcription on dify-0.12.1?
+  - dify-0.12.1 doesn't pass an user prompot which contains audio file (data) to this tiny-openai-whisper-api server.
 
 ## TODO
 
