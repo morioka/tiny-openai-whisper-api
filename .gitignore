@@ -1,2 +1,4 @@
 .python-version
 __pycache__/
+tests/openai/*.log
+tests/openai/*.wav
