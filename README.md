@@ -14,7 +14,7 @@ Now, this server emulates the following OpenAI APIs.
 
 ## Running Environment
 
-This was built & tested on Python 3.10.9, Ubutu20.04/WSL2 but should also work on Python 3.9+.
+This was built & tested on Python 3.10.9, Ubutu22.04/WSL2.
 
 - openai=1.55.0
 - openai-whisper=20240930
@@ -23,7 +23,7 @@ This was built & tested on Python 3.10.9, Ubutu20.04/WSL2 but should also work o
 
 ```bash
 sudo apt install ffmpeg
-pip install fastapi python-multipart pydantic uvicorn openai-whisper
+pip install fastapi python-multipart pydantic uvicorn openai-whisper httpx
 # or pip install -r requirements.txt
 ```
 
@@ -149,9 +149,8 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 
 - LLM registration ... OK
 - audio file transcription ... NG
-  - only open:gpt-4o-audio-preview is supported for file transcription on dify-0.12.1?
   - dify-0.12.1 doesn't pass an user prompot which contains audio file (data) to this tiny-openai-whisper-api server.
-    - Probably on dify-0.12.1, "native (audio) file processing capabilities" is available only for openai:gpt-4o-audio-preview. How can we give these feature to openai-compatible LLMs?
+  - probably on dify-0.12.1, "native (audio) file processing capabilities" is available only for openai:gpt-4o-audio-preview. How can we give these feature to openai-compatible LLMs?
 
 ## TODO
 
