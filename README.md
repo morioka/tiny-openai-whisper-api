@@ -151,6 +151,7 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 - audio file transcription ... NG
   - only open:gpt-4o-audio-preview is supported for file transcription on dify-0.12.1?
   - dify-0.12.1 doesn't pass an user prompot which contains audio file (data) to this tiny-openai-whisper-api server.
+    - Probably on dify-0.12.1, "native (audio) file processing capabilities" is available only for openai:gpt-4o-audio-preview. How can we give these feature to openai-compatible LLMs?
 
 ## TODO
 
