@@ -487,6 +487,7 @@ async def transcriptions(model: str = Form(...),
     upload_file.close()
 
     settings = WHISPER_DEFAULT_SETTINGS.copy()
+    settings['whisper_model'] = WHISPER_MODEL
     settings['temperature'] = temperature
     if language is not None:
         # TODO: check  ISO-639-1  format
