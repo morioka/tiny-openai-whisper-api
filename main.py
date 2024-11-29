@@ -432,6 +432,7 @@ async def v1_chat_completions(request: Request):
     else:
         resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_TEMPLATE)
         resp_body['choices'][0]['message']['content'] = text
+        resp_body['choices'][0]['delta'] = resp_body['choices'][0]['message'].copy()
 
     resp_body['model'] = model
 
