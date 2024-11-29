@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
@@ -21,7 +22,6 @@ import json
 import base64
 import tempfile
 
-app = FastAPI()
 
 #url https://api.openai.com/v1/audio/transcriptions \
 #  -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -35,6 +35,9 @@ app = FastAPI()
 
 
 WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'turbo')
+
+transcriber = None
+
 # -----
 # copied from https://github.com/hayabhay/whisper-ui
 
@@ -47,12 +50,26 @@ def get_whisper_model(whisper_model: str):
     model = whisper.load_model(whisper_model, device=device, in_memory=True)
     return model
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    global transcriber
+    
+    transcriber = get_whisper_model(WHISPER_MODEL)
+    yield
+    # Clean up the ML models and release the resources
+    del transcriber
+    transcriber = None
+
+app = FastAPI(lifespan=lifespan)
+
+
 def transcribe(audio_path: str, whisper_model: str, **whisper_args):
     """Transcribe the audio file using whisper"""
 
     # Get whisper model
     # NOTE: If mulitple models are selected, this may keep all of them in memory depending on the cache size
-    transcriber = get_whisper_model(whisper_model)
+    #transcriber = get_whisper_model(whisper_model)
 
     # Set configs & transcribe
     if whisper_args["temperature_increment_on_fallback"] is not None:
@@ -316,7 +333,9 @@ def save_base64_to_temp_file(base64_string: str) -> str:
 
     except Exception as e:
         return None
-    
+
+
+
 @app.post('/v1/chat/completions')
 async def v1_chat_completions(request: Request):
 
