@@ -34,8 +34,10 @@ import tempfile
 #}
 
 WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'turbo')
+CHAT_MODEL = os.environ.get('CHAT_MODEL', None)
 
 whisper_model = None
+chat_model = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -320,6 +322,8 @@ def save_base64_to_temp_file(base64_string: str) -> str:
 @app.post('/v1/chat/completions')
 async def v1_chat_completions(request: Request):
 
+    global chat_model
+
     req_body = await request.json()
 
     model = req_body['model']
@@ -375,7 +379,7 @@ async def v1_chat_completions(request: Request):
     if content is None:
         # dify ping
         for m in messages:
-            if m['content'] in ['ping', 'transcribe']:
+            if m['content'] in ['ping']:
                 resp_body = json.loads(CHAT_COMPLETIONS_RESPONSE_DIFY_PING_TEMPLATE)
                 resp_body['model'] = model
                 resp = JSONResponse(
@@ -399,13 +403,8 @@ async def v1_chat_completions(request: Request):
             detail=f"Bad Request, content is not base64-encoded."
             )
 
-    # TODO: transcribe audio to text
     settings = WHISPER_DEFAULT_SETTINGS.copy()
-    #settings['whisper_model'] = WHISPER_MODEL
     #settings['temperature'] = temperature
-    #if language is not None:
-    #    # TODO: check  ISO-639-1  format
-    #    settings['language'] = language
 
     temp_content_path = save_base64_to_temp_file(data)
     if temp_content_path is None:
@@ -433,6 +432,14 @@ async def v1_chat_completions(request: Request):
         resp_body['choices'][0]['delta'] = resp_body['choices'][0]['message'].copy()
 
     resp_body['model'] = model
+
+    if chat_model:
+        pass
+        # request の messagesのうち、 input_audio 部分を書き起こしに差し替えて、
+        # chat_model に投げつけて応答を得る。
+        # ? chat_modelのAPI_KEYは? 接続先は?
+        # ? トークン数などの統計情報をどう補正する?
+        # ? modalities 情報は? 音声出力しないのであれば気にしなくてよい?
 
     resp = JSONResponse(
         content = resp_body,
@@ -486,7 +493,6 @@ async def transcriptions(model: str = Form(...),
     upload_file.close()
 
     settings = WHISPER_DEFAULT_SETTINGS.copy()
-    #settings['whisper_model'] = WHISPER_MODEL
     settings['temperature'] = temperature
     if language is not None:
         settings['language'] = language # TODO: check  ISO-639-1  format
