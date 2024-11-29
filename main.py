@@ -33,43 +33,31 @@ import tempfile
 #  "text": "Imagine the wildest idea that you've ever had, and you're curious about how it might scale to something that's a 100, a 1,000 times bigger..."
 #}
 
-
 WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'turbo')
 
-transcriber = None
-
-# -----
-# copied from https://github.com/hayabhay/whisper-ui
-
-# Whisper transcription functions
-# ----------------
-@lru_cache(maxsize=1)
-def get_whisper_model(whisper_model: str):
-    """Get a whisper model from the cache or download it if it doesn't exist"""
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model(whisper_model, device=device, in_memory=True)
-    return model
+whisper_model = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global whisper_model
     # Load the ML model
-    global transcriber
-    
-    transcriber = get_whisper_model(WHISPER_MODEL)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    whisper_model = whisper.load_model(WHISPER_MODEL, device=device, in_memory=True)
+
     yield
+
     # Clean up the ML models and release the resources
-    del transcriber
-    transcriber = None
+    del whisper_model
+    whisper_model = None
 
 app = FastAPI(lifespan=lifespan)
 
-
-def transcribe(audio_path: str, whisper_model: str, **whisper_args):
+# -----
+# copied from https://github.com/hayabhay/whisper-ui
+# Whisper transcription functions
+def transcribe(audio_path: str, **whisper_args):
     """Transcribe the audio file using whisper"""
-
-    # Get whisper model
-    # NOTE: If mulitple models are selected, this may keep all of them in memory depending on the cache size
-    #transcriber = get_whisper_model(whisper_model)
+    global whisper_model
 
     # Set configs & transcribe
     if whisper_args["temperature_increment_on_fallback"] is not None:
@@ -81,17 +69,15 @@ def transcribe(audio_path: str, whisper_model: str, **whisper_args):
 
     del whisper_args["temperature_increment_on_fallback"]
 
-    transcript = transcriber.transcribe(
+    transcript = whisper_model.transcribe(
         audio_path,
         **whisper_args,
     )
 
     return transcript
 
-
 WHISPER_DEFAULT_SETTINGS = {
-#    "whisper_model": "base",
-    "whisper_model": "large-v2",
+#    "whisper_model": "turbo",
     "temperature": 0.0,
     "temperature_increment_on_fallback": 0.2,
     "no_speech_threshold": 0.6,
@@ -99,13 +85,10 @@ WHISPER_DEFAULT_SETTINGS = {
     "compression_ratio_threshold": 2.4,
     "condition_on_previous_text": True,
     "verbose": False,
-#    "verbose": True,
     "task": "transcribe",
-#    "task": "translation",
 }
 
 UPLOAD_DIR="/tmp"
-# -----
 
 @app.get('/v1/models')
 async def v1_models(request: Request):
@@ -334,8 +317,6 @@ def save_base64_to_temp_file(base64_string: str) -> str:
     except Exception as e:
         return None
 
-
-
 @app.post('/v1/chat/completions')
 async def v1_chat_completions(request: Request):
 
@@ -404,9 +385,7 @@ async def v1_chat_completions(request: Request):
                     },
                     status_code = 200
                 )
-                
                 return resp
-
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Bad Request, missing content"
@@ -422,7 +401,7 @@ async def v1_chat_completions(request: Request):
 
     # TODO: transcribe audio to text
     settings = WHISPER_DEFAULT_SETTINGS.copy()
-    settings['whisper_model'] = WHISPER_MODEL
+    #settings['whisper_model'] = WHISPER_MODEL
     #settings['temperature'] = temperature
     #if language is not None:
     #    # TODO: check  ISO-639-1  format
@@ -507,14 +486,12 @@ async def transcriptions(model: str = Form(...),
     upload_file.close()
 
     settings = WHISPER_DEFAULT_SETTINGS.copy()
-    settings['whisper_model'] = WHISPER_MODEL
+    #settings['whisper_model'] = WHISPER_MODEL
     settings['temperature'] = temperature
     if language is not None:
-        # TODO: check  ISO-639-1  format
-        settings['language'] = language
+        settings['language'] = language # TODO: check  ISO-639-1  format
 
     transcript = transcribe(audio_path=upload_name, **settings)
-
 
     if response_format in ['text']:
         return transcript['text']
