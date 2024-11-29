@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 
 import os
 import shutil
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, List, Union, Optional
 
@@ -15,8 +14,6 @@ import numpy as np
 import whisper
 import torch
 
-import httpx
-import urllib
 import uvicorn
 import json
 import base64
