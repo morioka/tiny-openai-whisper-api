@@ -160,6 +160,9 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 - text prompt (to whisper module) should be supported. currently text prompt is ignored.
 - some of reponse property values are dummy (static).
 - 'speech-to-text' chat completion available on dify
+- discussed at https://discord.com/channels/1082486657678311454/1236911815695400960/1311646643581353984
+  - patch is https://github.com/fujita-h/dify/commit/39cc3a38d1762da3d5534615580590441f1c9c9b
+  - the patch works well with this code.
 
 ## License
 
