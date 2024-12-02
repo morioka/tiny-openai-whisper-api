@@ -55,7 +55,8 @@ note: Authorization header is ignored.
 example 1: typical usecase, identical to OpenAI Whisper API example
 
 ```bash
-curl http://127.0.0.1:8000/v1/audio/transcriptions \
+curl --request POST \
+  http://127.0.0.1:8000/v1/audio/transcriptions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "Content-Type: multipart/form-data" \
   -F model="whisper-1" \
@@ -65,7 +66,8 @@ curl http://127.0.0.1:8000/v1/audio/transcriptions \
 example 2: set the output format as text, described in quickstart.
 
 ```bash
-curl http://127.0.0.1:8000/v1/audio/transcriptions \
+curl --request POST \
+  http://127.0.0.1:8000/v1/audio/transcriptions \
   -H "Content-Type: multipart/form-data" \
   -F model="whisper-1" \
   -F file="@/path/to/file/openai.mp3" \
