@@ -73,6 +73,14 @@ curl --request POST \
   -F file="@/path/to/file/openai.mp3" \
   -F response_format=text
 ```
+
+example 3: Windows PowerShell5
+
+```bash
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\test_audio_transcription.ps1 "C:\temp\alloy.wav"
+```
+
 ## experimental: gpt-4o-audio-preview, chat-completions
 
 currenly "output text only" mode is supported. 
