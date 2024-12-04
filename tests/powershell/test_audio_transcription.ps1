@@ -6,11 +6,15 @@ if (-not $apiKey) {
 }
 
 # 環境変数からAPI URLを取得
-$apiBase = $env:OPENAI_URL_BASE
+$apiBase = $env:OPENAI_BASE_URL
 if (-not $apiBase) {
-    $apiBase = "https://api.openai.com/v1"
+    $apiBase = $env:OPENAI_API_BASE
+    if (-not $apiBase) {
+        $apiBase = "https://api.openai.com/v1"
+    }
 }
 $openAiUrl = $apiBase + "/audio/transcriptions"
+#$openAiUrl = "http://localhost:8000/v1/audio/transcriptions"
 
 # コマンドライン引数で音声ファイルのパスを取得
 if ($args.Count -lt 1) {
@@ -32,7 +36,7 @@ $extension = [System.IO.Path]::GetExtension($audioFilePath).ToLower()
 switch ($extension) {
     ".mp4" { $mimeType = "audio/mp4" }
     ".wav" { $mimeType = "audio/wav" }
-    ".mp3" { $mimeType = "audio/mpeg" }   
+    ".mp3" { $mimeType = "audio/mpeg" }
     default {
         Write-Error "サポートされていないファイル形式: $extension"
         exit 1
