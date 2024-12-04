@@ -78,7 +78,10 @@ example 3: Windows PowerShell5
 
 ```bash
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\test_audio_transcription.ps1 "C:\temp\alloy.wav"
+$env:OPENAI_API_KEY="dummy"
+$env:OPENAI_BASE_URL="http://localhost:8000/v1"
+
+.\tests\powershell\Invoke-Whisper-Audio-Transcription.ps1 "C:\temp\alloy.wav"
 ```
 
 ## experimental: gpt-4o-audio-preview, chat-completions
