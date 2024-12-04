@@ -484,8 +484,10 @@ async def transcriptions(model: str = Form(...),
 
     filename = file.filename
     fileobj = file.file
+    
+    # TODO: 拡張子は維持しながら、ファイル名の衝突を避けるために一時ファイルとしたい
     upload_name = os.path.join(UPLOAD_DIR, filename)
-    upload_file = open(upload_name, 'wb+')
+    upload_file = open(upload_name, 'wb')
     shutil.copyfileobj(fileobj, upload_file)
     upload_file.close()
 
@@ -495,6 +497,9 @@ async def transcriptions(model: str = Form(...),
         settings['language'] = language # TODO: check  ISO-639-1  format
 
     transcript = transcribe(audio_path=upload_name, **settings)
+
+    if upload_name:
+        os.remove(upload_name)
 
     if response_format in ['text']:
         return transcript['text']
