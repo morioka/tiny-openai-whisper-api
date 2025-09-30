@@ -514,7 +514,7 @@ async def transcriptions(model: str = Form(...),
             t_s = f'{td_s.seconds//3600:02}:{(td_s.seconds//60)%60:02}:{td_s.seconds%60:02},{td_s.microseconds//1000:03}'
             t_e = f'{td_e.seconds//3600:02}:{(td_e.seconds//60)%60:02}:{td_e.seconds%60:02},{td_e.microseconds//1000:03}'
 
-            ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], t_s, t_e, seg["text"])
+            ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], t_s, t_e, seg["text"].strip())
         ret += '\n'
         return Response(content=ret, media_type="text/plain")
 
@@ -527,7 +527,7 @@ async def transcriptions(model: str = Form(...),
             t_s = f'{td_s.seconds//3600:02}:{(td_s.seconds//60)%60:02}:{td_s.seconds%60:02}.{td_s.microseconds//1000:03}'
             t_e = f'{td_e.seconds//3600:02}:{(td_e.seconds//60)%60:02}:{td_e.seconds%60:02}.{td_e.microseconds//1000:03}'
 
-            ret += "{} --> {}\n{}\n\n".format(t_s, t_e, seg["text"])
+            ret += "{} --> {}\n{}\n\n".format(t_s, t_e, seg["text"].strip())
         return Response(content=ret, media_type="text/plain")
 
     if response_format in ['verbose_json']:
