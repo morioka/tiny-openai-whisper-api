@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Form, UploadFile, File
+from fastapi import FastAPI, Request, Response, Form, UploadFile, File
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 
@@ -502,7 +502,7 @@ async def transcriptions(model: str = Form(...),
         os.remove(upload_name)
 
     if response_format in ['text']:
-        return transcript['text']
+        return Response(content=transcript['text'], media_type="text/plain")
 
     if response_format in ['srt']:
         ret = ""
@@ -516,7 +516,7 @@ async def transcriptions(model: str = Form(...),
 
             ret += '{}\n{} --> {}\n{}\n\n'.format(seg["id"], t_s, t_e, seg["text"])
         ret += '\n'
-        return ret
+        return Response(content=ret, media_type="text/plain")
 
     if response_format in ['vtt']:
         ret = "WEBVTT\n\n"
@@ -528,7 +528,7 @@ async def transcriptions(model: str = Form(...),
             t_e = f'{td_e.seconds//3600:02}:{(td_e.seconds//60)%60:02}:{td_e.seconds%60:02}.{td_e.microseconds//1000:03}'
 
             ret += "{} --> {}\n{}\n\n".format(t_s, t_e, seg["text"])
-        return ret
+        return Response(content=ret, media_type="text/plain")
 
     if response_format in ['verbose_json']:
         transcript.setdefault('task', WHISPER_DEFAULT_SETTINGS['task'])
