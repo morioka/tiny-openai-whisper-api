@@ -2,7 +2,7 @@
 
 OpenAI Whisper API-style local server, runnig on FastAPI. This is for companies behind proxies or security firewalls.
 
-This API will be compatible with [OpenAI Whisper (speech to text) API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis). See also  [Create transcription - API Reference - OpenAI API](https://platform.openai.com/docs/api-reference/audio/create).
+This API will be compatible with [OpenAI Whisper (speech to text) API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis). See also  [Create transcription - API Reference - OpenAI API](https://platform.openai.com/docs/api-reference/audio/create) and [Speech to text - OpenAI API](https://platform.openai.com/docs/guides/speech-to-text).
 
 Some of code has been copied from [whisper-ui](https://github.com/hayabhay/whisper-ui)
 
@@ -171,9 +171,13 @@ ChatCompletion(id='chatcmpl-AXTBlZypmtf1CCWrR6X5uX55r4VHY', choices=[Choice(fini
 - text prompt (to whisper module) should be supported. currently text prompt is ignored.
 - some of reponse property values are dummy (static).
 - 'speech-to-text' chat completion available on dify
-- discussed at https://discord.com/channels/1082486657678311454/1236911815695400960/1311646643581353984
-  - patch is https://github.com/fujita-h/dify/commit/39cc3a38d1762da3d5534615580590441f1c9c9b
-  - the patch works well with this code.
+  - discussed at https://discord.com/channels/1082486657678311454/1236911815695400960/1311646643581353984
+    - patch is https://github.com/fujita-h/dify/commit/39cc3a38d1762da3d5534615580590441f1c9c9b
+    - the patch works well with this code.
+- timestamp_granularities parameter
+- streaming output
+- Realtime API compatible
+- flexible model handling (dynamic model loading/unloading, multiple models...)
 
 ## License
 
