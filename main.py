@@ -85,8 +85,17 @@ WHISPER_DEFAULT_SETTINGS = {
     "condition_on_previous_text": True,
     "verbose": False,
     "task": "transcribe",
+    
+    #
+#    "initial_prompt": None,
+#    "carry_initial_prompt": False,
+#    "word_timestamps": False,
+#    "prepend_punctuations": "\"'“¿([{-",
+#    "append_punctuations": "\"'.。,，!！?？:：”)]}、",
+#    "clip_timestamps": "0",
+#    "hallucination_silence_threshold": None,
+#    "verbose": None,
 }
-
 
 import tempfile
 UPLOAD_DIR=tempfile.gettempdir()
@@ -489,18 +498,38 @@ async def transcriptions(model: str = Form(...),
     filename = file.filename
     fileobj = file.file
     
-    # TODO: 拡張子は維持しながら、ファイル名の衝突を避けるために一時ファイルとしたい
     upload_name = None
     try:
+        # TODO: 拡張子は維持しながら、ファイル名の衝突を避けるために一時ファイルとしたい
         upload_name = os.path.join(UPLOAD_DIR, filename)
         upload_file = open(upload_name, 'wb')
         shutil.copyfileobj(fileobj, upload_file)
         upload_file.close()
 
+        # 指定されたパラメータで上書き
         settings = WHISPER_DEFAULT_SETTINGS.copy()
         settings['temperature'] = temperature
         if language is not None:
             settings['language'] = language # TODO: check  ISO-639-1  format
+
+        # -F prompt="The following conversation is a lecture about the recent developments around OpenAI, GPT-4.5 and the future of AI."
+        if prompt is not None:
+            settings['initial_prompt'] = prompt
+            # プロンプトを各音声セグメントに適用するか、先頭セグメントのみ適用(デフォルト)か。
+            carry_initial_prompt = None
+            if carry_initial_prompt is not None:
+                settings['carry_initial_prompt'] = carry_initial_prompt
+
+        # -F "timestamp_granularities[]=word"
+        timestamp_granularities = None
+        if timestamp_granularities is not None:
+            if timestamp_granularities == 'word':
+                settings['word_timestamps'] = True
+
+        # -F stream=True  # whisper-1 not supported
+        stream = None
+        if stream is not None:
+            pass    # just drop. whisper-1 not support streaming output
 
         transcript = transcribe(audio_path=upload_name, **settings)
     except Exception:
