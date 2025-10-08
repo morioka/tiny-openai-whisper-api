@@ -87,7 +87,11 @@ WHISPER_DEFAULT_SETTINGS = {
     "task": "transcribe",
 }
 
-UPLOAD_DIR="/tmp"
+
+import tempfile
+UPLOAD_DIR=tempfile.gettempdir()
+#UPLOAD_DIR="/tmp"
+
 
 @app.get('/v1/models')
 async def v1_models(request: Request):
@@ -486,20 +490,28 @@ async def transcriptions(model: str = Form(...),
     fileobj = file.file
     
     # TODO: 拡張子は維持しながら、ファイル名の衝突を避けるために一時ファイルとしたい
-    upload_name = os.path.join(UPLOAD_DIR, filename)
-    upload_file = open(upload_name, 'wb')
-    shutil.copyfileobj(fileobj, upload_file)
-    upload_file.close()
+    upload_name = None
+    try:
+        upload_name = os.path.join(UPLOAD_DIR, filename)
+        upload_file = open(upload_name, 'wb')
+        shutil.copyfileobj(fileobj, upload_file)
+        upload_file.close()
 
-    settings = WHISPER_DEFAULT_SETTINGS.copy()
-    settings['temperature'] = temperature
-    if language is not None:
-        settings['language'] = language # TODO: check  ISO-639-1  format
+        settings = WHISPER_DEFAULT_SETTINGS.copy()
+        settings['temperature'] = temperature
+        if language is not None:
+            settings['language'] = language # TODO: check  ISO-639-1  format
 
-    transcript = transcribe(audio_path=upload_name, **settings)
+        transcript = transcribe(audio_path=upload_name, **settings)
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal Server Error: transcription failed."
+            )
+    finally:
+        if upload_name:
+            os.remove(upload_name)
 
-    if upload_name:
-        os.remove(upload_name)
 
     if response_format in ['text']:
         return Response(content=transcript['text'], media_type="text/plain")
